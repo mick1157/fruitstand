@@ -1,0 +1,26 @@
+<h1>Carts#index</h1>
+<p>Find me in app/views/carts/index.html.erb</p>
+
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Price</th>
+    <th>Quantity</th>
+    <th></th>
+    <th></th>
+    <th></th>
+  </tr>
+
+  <% @cart.line_items.each do |item| %>
+      <tr>
+        <td><%= item.product.name %></td>
+        <td><%= item.price %></td>
+        <td><%= item.quantity %></td>
+        <td><%= link_to 'Destroy', remove_cart_path(@cart, :line_item_id => item), method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+  <% end %>
+</table>
+
+<br />
+<%= link_to 'Check out', checkout_path %> <br/>
+<%= link_to 'Cancel', products_path %>
