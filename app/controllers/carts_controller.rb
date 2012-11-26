@@ -37,19 +37,52 @@ class CartsController < ApplicationController
   end
 
   def index
-    @cart = Cart.find(session[:cart_id])
+    if session[:cart_id]
+     @cart = Cart.find(session[:cart_id])
+    else
+      flash[notice] = "There is NO cart -- please add to cart first.."
+      redirect_to root_path
+    end
   end
 
   def checkout
     @cart = Cart.find(session[:cart_id])
 
+    @order = Order.create!
+
     @sum_of_cart=0
     @cart.line_items.each do |item|
-      sum_of_item = item.quantity * Item.price
+      sum_of_item = item.quantity * item.price
       @sum_of_cart = @sum_of_cart + sum_of_item
+      @order.line_items << LineItem.new({product: item.product, quantity: item.quantity})
+    end
+    #
+    # ### Save the order items to the table
+    #
+    @order.save
+    #
+    # ### Bill the order
+    #
+    if @order.bill
+
+      if OrderMailer.complete(@order).deliver
+        flash[notice] = "an email has been sent.."
+
+      end
+      #
+      # ### After order billed -- clean up the cart
+      # ### Please note the dependents - line_items will be deleted - because of dependent: :destroy in model
+      #
+      if @cart.destroy
+        session[:cart_id] = nil
+      end
+
     end
 
 
+
+    flash[notice] = "Thank you for completing your order.."
+    redirect_to root_path
 
   end
 
